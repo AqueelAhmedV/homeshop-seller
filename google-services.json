@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "668537072123",
+    "project_id": "kdshree-otp",
+    "storage_bucket": "kdshree-otp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:668537072123:android:f47d13630143e17f6c835e",
+        "android_client_info": {
+          "package_name": "com.homeshopapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1OjqljQTjfdmucIP-rSt_oSAD4LUMJKg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

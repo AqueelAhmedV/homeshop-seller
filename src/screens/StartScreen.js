@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { TextInput, Button, Snackbar } from 'react-native-paper';
+import { Button, Snackbar } from 'react-native-paper';
 import { BASE_URL } from '../constants/endpoints';
 import axios from "axios"
 import { phoneValidator } from '../helpers/phoneValidator';
@@ -8,6 +8,8 @@ import { Alert } from 'react-native';
 import { Platform } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native';
 import AsyncStorage  from "@react-native-async-storage/async-storage"
+import TextInput from '../components/TextInput';
+import { Entypo } from '@expo/vector-icons'
 
 
 const StartScreen = ({ navigation }) => {
@@ -23,17 +25,17 @@ const StartScreen = ({ navigation }) => {
   const [isSnackbarVisible, setSnackbarVisible] = useState(false);
   const [verified, setVerified] = useState(false)
 
-  // useEffect(() => {
-  //   AsyncStorage.getItem("sellerId")
-  //   .then((value) =>{
-  //     if (!!value) {
-  //       navigation.reset({
-  //         index: 0,
-  //         routes: [{ name: "Dashboard" }]
-  //       })
-  //     }
-  //   }).catch(console.log)
-  // }, [])
+  useEffect(() => {
+    AsyncStorage.getItem("sellerId")
+    .then((value) =>{
+      if (!!value) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Dashboard", }]
+        })
+      }
+    }).catch(console.log)
+  }, [])
 
 
   const handleProceed = async () => {
@@ -88,11 +90,11 @@ const StartScreen = ({ navigation }) => {
     })
     .then((res) => { 
       console.log(res.data)
-      AsyncStorage.setItem("sellerId", res.data.seller.SellerId)
+      AsyncStorage.multiSet([["sellerId", res.data.seller.SellerId], ["sellerName", res.data.seller.Name]])
       .then(() => {
         navigation.reset({
           index: 0,
-          routes: [{ name: 'Dashboard' }],
+          routes: [{ name: 'Dashboard'}],
         })
       })
     }).catch((err) => {
@@ -103,18 +105,19 @@ const StartScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      
+      <View style={styles.inputContainer}>
       {verified && <TouchableWithoutFeedback onPress={() => {
       setVerified(false);
       setPhoneNumber({ value: "", error: "" });
     }}>
-      
-      <Text style={{ color: 'blue', textDecorationLine: 'underline', marginBottom: "10px" }}>
+      <Text style={{ color: '#66f', marginBottom: "10px" }}>
         Change Number
+        <Entypo style={{paddingTop: 3, marginLeft: 3}} name="edit" size={12}/>
       </Text>
     </TouchableWithoutFeedback>}
-      <View style={styles.inputContainer}>
         <TextInput
-          label="Phone Number"
+          label="Mobile Number"
           value={phoneNumber.value}
           onChangeText={(text) => setPhoneNumber({...phoneNumber, value: text})}
           error={!!phoneNumber.error}
@@ -122,7 +125,6 @@ const StartScreen = ({ navigation }) => {
           keyboardType='numeric'
           disabled={verified}
         />
-      </View>
       {verified && <TextInput
         label="Password"
         returnKeyType="done"
@@ -134,7 +136,7 @@ const StartScreen = ({ navigation }) => {
         
         
       />}
-
+      </View>
       <Button style={{
         marginTop: "20px"
 

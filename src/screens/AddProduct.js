@@ -20,18 +20,18 @@ import { StyleSheet } from 'react-native';
 const UploadImageView = ({ navigation }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [message, setMessage] = useState('');
-  const [productName, setProductName] = useState({value: "", error: ""})
+  const [productName, setProductName] = useState({value: "Achaar", error: ""})
   
-  const [mrp, setMrp] = useState({value: "", error: ""})
+  const [mrp, setMrp] = useState({value: "123", error: ""})
   const [offerPrice, setOfferPrice] = useState({value: "", error: ""})
   const [description, setDescription] = useState("")
-  const [prodUnit, setProdUnit] = useState({value: "", error: ""})
+  const [prodUnit, setProdUnit] = useState({value: "Manjeri", error: ""})
   const [openCategories, setOpenCategories] = useState(false);
   const [categoryOpts, setCategoryOpts] = useState(categories.map(v => ({
     label: v,
     value: v
   })));
-  const [category, setCategory] = useState("")
+  const [category, setCategory] = useState("Groceries")
   const [openAvailability, setOpenAvailability] = useState(false);
   const [availabilityOpts, setAvailabilityOpts] = useState([{
     label: "Available",

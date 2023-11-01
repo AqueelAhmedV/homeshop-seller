@@ -16,8 +16,11 @@ import Btn from '../components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { LogBox } from 'react-native';
 import { StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { AntDesign, MaterialIcons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
+import { theme } from '../core/theme';
+import { windowWidth, windowHeight } from '../constants/dimensions'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const UploadImageView = ({ navigation, route }) => {
   const { _productName, _mrp, _offerPrice, _description, _imageId, _prodUnit, _category, _availability, _productId } = route.params
@@ -245,15 +248,34 @@ const UploadImageView = ({ navigation, route }) => {
 
   return (
 
-    <Background>
-      <BackButton goBack={navigation.goBack} />
-      <View style={styles.header}>
-      <Header>{"Edit Product Details"} 
-       </Header>
-       <TouchableOpacity onPress={handleDeleteProduct}>
-          <Ionicons name="trash" size={30} color={"#ed5249"}/>
+    <View style={styles.page}>
+      <View style={styles.navbar}>
+      <View style={styles.headerContainer}>
+           <TouchableOpacity style={{
+              borderRadius: 10,
+              paddingHorizontal: 5,
+              paddingTop: 3,
+              marginLeft: 10
+            }} onPress={() => navigation.goBack()}>
+              <AntDesign name="left" size={25} color="white" />
+            </TouchableOpacity>
+            <View style={{
+                alignItems: "center",
+                width: "76%"
+            }}>
+                <Text style={{
+                    fontWeight: "bold",
+                    fontSize: 24,
+                    color: "#fff",
+                    paddingLeft: 10
+                }}>{"Manage Products"}</Text>
+            </View>
+          </View>
+          <TouchableOpacity onPress={handleDeleteProduct}>
+          <MaterialIcons name="delete-outline" size={30} color={"#fff"}/>
         </TouchableOpacity>  
-        </View>
+      </View>
+       <KeyboardAwareScrollView>
       <TextInput
         label="Product Name"
         returnKeyType="next"
@@ -341,7 +363,8 @@ const UploadImageView = ({ navigation, route }) => {
         {/* <Ionicons name='checkmark' size={5} /> */}
         {status === "added"?"Saved":"Save Details"}
       </Btn>
-      </Background>
+      </KeyboardAwareScrollView>
+      </View>
 
   );
 };
@@ -349,6 +372,26 @@ const UploadImageView = ({ navigation, route }) => {
 export default UploadImageView;
 
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+    backgroundColor: "#fff"
+  },
+  navbar: {
+    position: "sticky",
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: theme.colors.primary,
+    height: windowHeight*0.08, // You can adjust the height as needed
+    padding: 0,
+    margin: 0,
+    width: "100%",
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: windowHeight*0.02
+  },
   imageContainer: {
     width: "100%",
     flex: 1,

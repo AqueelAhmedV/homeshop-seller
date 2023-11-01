@@ -3,16 +3,51 @@ import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { BASE_URL } from '../constants/endpoints';
-import Background from '../components/Background';
-import Header from '../components/Header';
-import BackButton from '../components/BackButton';
-
+import { AntDesign } from '@expo/vector-icons'
+import { StyleSheet } from 'react-native';
+import { theme } from '../core/theme';
+import { windowWidth, windowHeight } from '../constants/dimensions'
+import { ActivityIndicator } from 'react-native';
 
 const ProductList = ({ navigation }) => {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false)
+
+  const styles = StyleSheet.create({
+    page: {
+      flex: 1,
+      backgroundColor: "#fff"
+    },
+    navbar: {
+      position: "sticky",
+      top: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: theme.colors.primary,
+      height: windowHeight*0.08, // You can adjust the height as needed
+      padding: 0,
+      margin: 0,
+      width: "100%",
+    },
+    headerContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: windowHeight*0.02
+    },
+    listContainer: {
+      alignItems: "center",
+      paddingHorizontal: 30,
+      flex: 1,
+      marginTop: 15
+    },
+    loading: {
+      marginTop: 70
+    }
+  })
 
 
   const fetchData = () => {
+    setLoading(true)
     AsyncStorage.getItem("sellerId")
     .then((sellerId) => {
         console.log(sellerId)
@@ -20,8 +55,10 @@ const ProductList = ({ navigation }) => {
       .then((response) => {
         console.log(response.data)
         setProducts(response.data);
+        setLoading(false)
       })
       .catch((error) => {
+        setLoading(false)
         console.log(JSON.stringify(error.response));
       });
     })
@@ -54,7 +91,7 @@ const ProductList = ({ navigation }) => {
     <TouchableOpacity onPress={() => handleProductClick(item)}>
       <View style={{ padding: 10, borderBottomWidth: 1, borderBottomColor: '#ccc' }}>
         <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{item.ProductName}</Text>
-        <Text>MRP: &#8377;{item.MRP}</Text>
+        <Text>Selling Price: &#8377;{item.OfferPrice ?? item.MRP}</Text>
         <Text>Production Unit: {item.ProductionUnit}</Text>
       </View>
     </TouchableOpacity>
@@ -62,15 +99,40 @@ const ProductList = ({ navigation }) => {
 
   return (
     
-    <Background>
-      <BackButton goBack={navigation.goBack} />
-      <Header>{"Manage Products"}</Header>
-      {products.length === 0 ? (
+    <View style={styles.page}>
+      <View style={styles.navbar}>
+      <View style={styles.headerContainer}>
+           <TouchableOpacity style={{
+              borderRadius: 10,
+              paddingHorizontal: 5,
+              paddingTop: 3,
+              marginLeft: 10
+            }} onPress={() => navigation.goBack()}>
+              <AntDesign name="left" size={25} color="white" />
+            </TouchableOpacity>
+            <View style={{
+                alignItems: "center",
+                width: "76%"
+            }}>
+                <Text style={{
+                    fontWeight: "bold",
+                    fontSize: 24,
+                    color: "#fff",
+                    paddingLeft: 10
+                }}>{"Manage Products"}</Text>
+            </View>
+          </View>
+      </View>
+      <View style={styles.listContainer}>
+        {loading && <View style={styles.loading}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>}
+      {(!loading && products.length === 0) && (
         <View style={{padding: 40, }}>
         <Text style={{fontWeight: 500}}>No products to show</Text>
         </View>
-        ):
-    <FlatList
+        )}
+    {(!loading && products.length > 0) &&  <FlatList
       style={{
         width: "100%",
         flex: 1
@@ -79,7 +141,9 @@ const ProductList = ({ navigation }) => {
       renderItem={renderProductItem}
       keyExtractor={(item) => item.ProductId.toString()}
     />}
-    </Background>
+    </View>
+    </View>
+
   );
 };
 

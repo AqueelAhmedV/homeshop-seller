@@ -12,12 +12,15 @@ import {
   AddProduct,
   ManageProducts,
   EditProduct,
+  SeeOrders,
 } from './src/screens'
 import 'react-native-gesture-handler'
+import { StatusBar } from 'react-native'
 
 const Stack = createStackNavigator()
 
 export default function App() {
+  StatusBar.setBackgroundColor(theme.colors.primary)
   return (
     <Provider theme={theme}>
       <NavigationContainer>
@@ -34,6 +37,7 @@ export default function App() {
           <Stack.Screen name="AddProduct" component={AddProduct} />
           <Stack.Screen name="ManageProducts" component={ManageProducts} />
           <Stack.Screen name="EditProduct" component={EditProduct}/>
+          <Stack.Screen name="SeeOrders" component={SeeOrders}/>
           <Stack.Screen
             name="ResetPasswordScreen"
             component={ResetPasswordScreen}

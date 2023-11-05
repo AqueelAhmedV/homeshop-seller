@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "com.homeshopapp",
+    "name": "e-HomeShop Seller",
     "slug": "homeShopApp",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
@@ -26,6 +26,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c907ce06-0868-46db-9cd6-918a8d8b8b92"
+      }
     }
   }
 }

@@ -3,12 +3,12 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // You may need to install this icon library
 import { theme } from '../core/theme';
 import { windowHeight, windowWidth } from '../constants/dimensions'
-import { SimpleLineIcons } from '@expo/vector-icons'
+import { SimpleLineIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SellerDashboard = ({ navigation, route }) => {
-  const [sellerName, setSellerName] = useState("")
+  const [seller, setSeller] = useState({})
   const buttonsData = [
     { label: 'See Orders', icon: 'md-cart', to: "SeeOrders" },
     { label: 'Manage Products', icon: 'md-list', to: "ManageProducts" },
@@ -16,9 +16,10 @@ const SellerDashboard = ({ navigation, route }) => {
   ];
 
   useEffect(() => {
-    AsyncStorage.getItem('sellerName')
-    .then((val) => {
-      setSellerName(val)
+    AsyncStorage.getItem('seller')
+    .then(JSON.parse)
+    .then((data) => {
+      setSeller(data)
     }).catch(console.log)
   }, [])
 
@@ -31,7 +32,7 @@ const SellerDashboard = ({ navigation, route }) => {
       {
         text: "Logout",
         onPress: async () => {
-          await AsyncStorage.removeItem('sellerId')
+          await AsyncStorage.removeItem('seller')
           navigation.reset({
             index: 0,
             routes: [{name: 'StartScreen'}]
@@ -39,6 +40,10 @@ const SellerDashboard = ({ navigation, route }) => {
         }
       }
     ])
+  }
+
+  const handleEditAccount = () => {
+    navigation.navigate("EditAccount")
   }
 
   return (
@@ -49,8 +54,11 @@ const SellerDashboard = ({ navigation, route }) => {
             <SimpleLineIcons name="logout" color="#fff" size={25}/>
           </TouchableOpacity>
           <View style={styles.header}>
-            <Text style={styles.headerText}>{sellerName}</Text>
+            <Text numberOfLines={1} ellipsizeMode="tail" style={styles.headerText}>{seller?.Name}</Text>
           </View>
+          <TouchableOpacity onPress={handleEditAccount}>
+            <MaterialCommunityIcons name="account-edit-outline" color="#fff" size={35} />
+          </TouchableOpacity>
         </View>
       </View>
       <View style={styles.gridContainer}>
@@ -83,21 +91,21 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "space-between",
     marginTop: windowHeight*0.05,
-    alignItems: "center"
+    alignItems: "center",
+    paddingHorizontal: 25
   },
   logout: {
-    paddingLeft: 25
+    // paddingLeft: 25
   },
   header: {
     flex: 1,
     alignItems: "center",
-    paddingRight: 20
+
   },
   headerText: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 24,
-    paddingRight: 20
   },
   container: {
     flex: 1,
@@ -109,15 +117,16 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: "center",
     backgroundColor: "#fff",
-    paddingTop: 20,
+    paddingTop: 40,
     borderTopStartRadius: 40,
     borderTopEndRadius: 40,
     height: "100%",
-    elevation: 20
+    elevation: 20,
+    gap: 20
     // paddingHorizontal: 40
   },
   button: {
-    width: "80%",
+    width: "65%",
     height: 120,
     margin: 10,
     borderRadius: 10,
@@ -131,6 +140,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     textAlign: 'center',
+    fontWeight: "600"
   }
 });
 

@@ -9,7 +9,6 @@ import BackButton from '../components/BackButton';
 import Header from '../components/Header';
 // import ModalDropdown from 'react-native-modal-dropdown';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { categories } from '../constants/categories';
 // import { Ionicons } from '@expo/vector-icons';
 import Btn from '../components/Button';
 // import { SafeAreaView } from 'react-native';
@@ -34,10 +33,7 @@ const UploadImageView = ({ navigation, route }) => {
   const [description, setDescription] = useState(_description)
   const [prodUnit, setProdUnit] = useState({value: _prodUnit, error: ""})
   const [openCategories, setOpenCategories] = useState(false);
-  const [categoryOpts, setCategoryOpts] = useState(categories.map(v => ({
-    label: v,
-    value: v
-  })));
+  const [categoryOpts, setCategoryOpts] = useState([]);
   const [category, setCategory] = useState(_category)
   const [openAvailability, setOpenAvailability] = useState(false);
   const [availabilityOpts, setAvailabilityOpts] = useState([{
@@ -55,6 +51,17 @@ const UploadImageView = ({ navigation, route }) => {
   useEffect(() => {
     LogBox.ignoreLogs(["VirtualizedLists should never be nested"])
   }, [])
+
+  useEffect(() => {
+    axios.get(`${BASE_URL}/api/constants/categories`)
+    .then((res) => {
+      setCategoryOpts(res.data.map((c) => ({
+        label: c,
+        value: c
+      })))
+    }).catch(console.log)
+  }, [])
+
 
   function handleSubmit() {
     setStatus("adding")
@@ -124,13 +131,14 @@ const UploadImageView = ({ navigation, route }) => {
     }
     
 
-    AsyncStorage.getItem("sellerId")
-    .then((sellerId) => {
+    AsyncStorage.getItem("seller")
+    .then(JSON.parse)
+    .then((seller) => {
       const formData = new FormData();
       formData.append('image', selectedImage);
       formData.append("newProduct", JSON.stringify({
         ...newProduct,
-        SellerId: sellerId,
+        SellerId: seller.SellerId,
         ProductId: _productId,
         ImageId: _imageId
       }))
@@ -251,12 +259,7 @@ const UploadImageView = ({ navigation, route }) => {
     <View style={styles.page}>
       <View style={styles.navbar}>
       <View style={styles.headerContainer}>
-           <TouchableOpacity style={{
-              borderRadius: 10,
-              paddingHorizontal: 5,
-              paddingTop: 3,
-              marginLeft: 10
-            }} onPress={() => navigation.goBack()}>
+           <TouchableOpacity  onPress={() => navigation.goBack()}>
               <AntDesign name="left" size={25} color="white" />
             </TouchableOpacity>
             <View style={{
@@ -268,14 +271,15 @@ const UploadImageView = ({ navigation, route }) => {
                     fontSize: 24,
                     color: "#fff",
                     paddingLeft: 10
-                }}>{"Manage Products"}</Text>
+                }}>{"Edit Details"}</Text>
             </View>
-          </View>
+          
           <TouchableOpacity onPress={handleDeleteProduct}>
           <MaterialIcons name="delete-outline" size={30} color={"#fff"}/>
         </TouchableOpacity>  
+        </View>
       </View>
-       <KeyboardAwareScrollView>
+       <KeyboardAwareScrollView contentContainerStyle={styles.inputContainer}>
       <TextInput
         label="Product Name"
         returnKeyType="next"
@@ -290,8 +294,10 @@ const UploadImageView = ({ navigation, route }) => {
         value={description}
         onChangeText={(text) => setDescription(text)}
       />
-      <View style={{flex: 1}}>
+      <View style={styles.dropdownContainer}>
       <DropDownPicker
+      dropDownContainerStyle={{borderColor: "#999"}}
+      style={styles.dropdown}
       placeholder='Select Category'
       open={openCategories}
       value={category}
@@ -323,6 +329,7 @@ const UploadImageView = ({ navigation, route }) => {
         onChangeText={(text) => setMrp({ value: text, error: '' })}
         error={!!mrp.error}
         errorText={mrp.error}
+        keyboardType="numeric"
       />
       <TextInput
         label="Offer Price"
@@ -331,9 +338,12 @@ const UploadImageView = ({ navigation, route }) => {
         onChangeText={(text) => setOfferPrice({value: text, error: ""})}
         error={!!offerPrice.error}
         errorText={offerPrice.error}
+        keyboardType="numeric"
       />
-      
+      <View style={styles.dropdownContainer}>
       <DropDownPicker
+      dropDownContainerStyle={{borderColor: "#999"}}
+      style={styles.dropdown}
       open={openAvailability}
       value={availability}
       items={availabilityOpts}
@@ -347,7 +357,7 @@ const UploadImageView = ({ navigation, route }) => {
         setAvailability(value)
       }}
     />
-
+  </View>
       
     <View style={styles.imageContainer}>
       {(selectedImage || !!_imageId) && <Image source={selectedImage || {uri: imageUrl}} style={styles.image} />}
@@ -358,7 +368,7 @@ const UploadImageView = ({ navigation, route }) => {
         disabled={status !== "not added"}
         mode="contained"
         onPress={handleSubmit}
-        style={{ marginTop: 24 }}
+        style={{ marginTop: 24, marginBottom: 50, width: "70%" }}
       >
         {/* <Ionicons name='checkmark' size={5} /> */}
         {status === "added"?"Saved":"Save Details"}
@@ -390,12 +400,14 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: windowHeight*0.02
+    marginTop: windowHeight*0.02,
+    justifyContent: "space-around",
+    paddingHorizontal: 15
   },
   imageContainer: {
     width: "100%",
     flex: 1,
-    justifyContent: "center",
+    alignItems: "center",
     marginVertical: 10
   },
   image: {
@@ -403,7 +415,8 @@ const styles = StyleSheet.create({
     aspectRatio: "4/3",
     height: 200,
     objectFit: "contain",
-    padding: 5
+    padding: 5,
+    marginVertical: 5
   },
   header: {
     flexDirection: "row",
@@ -411,5 +424,19 @@ const styles = StyleSheet.create({
     marginLeft: 65,
     justifyContent: "space-between",
     width: "85%"
+  },
+  inputContainer: {
+    alignItems: "center",
+    paddingHorizontal: 40,
+    marginTop: 20
+  },
+  dropdownContainer: {
+    flex: 1,
+    marginVertical: 8,
+    paddingTop: 5
+  },
+  dropdown: {
+    borderColor: "#999",
+    borderRadius: 4,
   }
 })

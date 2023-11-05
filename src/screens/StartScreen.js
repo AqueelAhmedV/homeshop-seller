@@ -6,35 +6,47 @@ import axios from "axios"
 import { phoneValidator } from '../helpers/phoneValidator';
 import { Alert } from 'react-native';
 import { Platform } from 'react-native';
-import { TouchableWithoutFeedback } from 'react-native';
+import { TouchableWithoutFeedback, Image } from 'react-native';
 import AsyncStorage  from "@react-native-async-storage/async-storage"
 import TextInput from '../components/TextInput';
 import { Entypo } from '@expo/vector-icons'
+import { theme } from '../core/theme';
+import { windowHeight, windowWidth } from '../constants/dimensions'
+import { ActivityIndicator } from 'react-native';
 
 
 const StartScreen = ({ navigation }) => {
+  const [loading, setLoading] = useState(false)
   const [phoneNumber, setPhoneNumber] = useState({
-    value: "1234567890",
+    value: "",
     error: ""
   });
   const [password, setPassword] = useState({
-    value: "homeshop",
+    value: "",
     error: ""
   });
-  const [error, setError] = useState("");
   const [isSnackbarVisible, setSnackbarVisible] = useState(false);
   const [verified, setVerified] = useState(false)
+  const [verifying, setVerifying] = useState(false)
 
   useEffect(() => {
-    AsyncStorage.getItem("sellerId")
-    .then((value) =>{
-      if (!!value) {
+    setLoading(true)
+    AsyncStorage.getItem("seller")
+    .then(JSON.parse)
+    .then((seller) =>{
+      if (!!seller.SellerId) {
         navigation.reset({
           index: 0,
           routes: [{ name: "Dashboard", }]
         })
       }
-    }).catch(console.log)
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
+    }).catch((err) => {
+      setLoading(false)
+      console.log(err)
+    })
   }, [])
 
 
@@ -51,19 +63,22 @@ const StartScreen = ({ navigation }) => {
     } else {
       setPhoneNumber({...phoneNumber, error: ""})
     }
+    setVerifying(true)
     axios.post(`${BASE_URL}/api/seller/verify-phone`, {
       mobileNumber: phoneNumber.value
     }).then((res) => {
-      setError(JSON.stringify(res.body))
       setVerified(true)
+      setVerifying(false)
       console.log(res)
     })
     .catch((err) => {
+      console.log(err)
       console.log(JSON.stringify(err))
+      setVerifying(false)
       if (Platform.OS === "android") {
         Alert.alert(
           'Phone number not registered yet',
-          'Do you want to register as a new Seller?', // <- this part is optional, you can pass an empty string
+          'Do you want to register as a new seller?', // <- this part is optional, you can pass an empty string
           [
             {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
             {text: 'YES', onPress: () => navigation.navigate("RegisterScreen", {
@@ -90,7 +105,7 @@ const StartScreen = ({ navigation }) => {
     })
     .then((res) => { 
       console.log(res.data)
-      AsyncStorage.multiSet([["sellerId", res.data.seller.SellerId], ["sellerName", res.data.seller.Name]])
+      AsyncStorage.setItem('seller', JSON.stringify(res.data.seller))
       .then(() => {
         navigation.reset({
           index: 0,
@@ -104,9 +119,13 @@ const StartScreen = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
+    
+    !!!loading? (<View style={styles.container}>
       
       <View style={styles.inputContainer}>
+      <View style={styles.imageContainer}>
+        <Image source={require("../../assets/seller_login.png")} style={styles.image}/>
+      </View>
       {verified && <TouchableWithoutFeedback onPress={() => {
       setVerified(false);
       setPhoneNumber({ value: "", error: "" });
@@ -126,6 +145,7 @@ const StartScreen = ({ navigation }) => {
           disabled={verified}
         />
       {verified && <TextInput
+        autoFocus
         label="Password"
         returnKeyType="done"
         value={password.value}
@@ -136,37 +156,46 @@ const StartScreen = ({ navigation }) => {
         
         
       />}
-      </View>
-      <Button style={{
-        marginTop: "20px"
+      {verifying? <ActivityIndicator style={{marginTop: 15}} size="large" color={theme.colors.primary} /> :<Button style={{
+        marginTop: 15
 
       }} mode="contained" onPress={verified?handleSignin:handleProceed}>
         {verified?"Sign In":"Proceed"}
-      </Button>
-      <Snackbar
-        visible={isSnackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-        action={{
-          label: 'Dismiss',
-          onPress: () => setSnackbarVisible(false),
-        }}
-      >
-        {error}
-      </Snackbar>
+      </Button>}
+      </View>
+      
       
     </View>
-  );
+  ): (
+  <View style={styles.loadingScreen}>
+
+  </View>));
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
+    backgroundColor: "#fff",
     padding: 16,
-    justifyContent: 'center',
   },
   inputContainer: {
-    marginBottom: 16
+    marginTop: windowHeight*0.1,
+    marginBottom: 16,
+    paddingHorizontal: 50
+  },
+  loadingScreen: {
+    backgroundColor: theme.colors.primary,
+    width: "100%",
+    height: "100%"
+  },
+  image: {
+    width: 150,
+    height: 150,
+    // objectFit: "contain",
+    marginBottom: 40
+  },
+  imageContainer: {
+    alignItems: "center"
   }
 });
 

@@ -13,6 +13,7 @@ import {
   ManageProducts,
   EditProduct,
   SeeOrders,
+  EditAccount,
 } from './src/screens'
 import 'react-native-gesture-handler'
 import { StatusBar } from 'react-native'
@@ -38,6 +39,7 @@ export default function App() {
           <Stack.Screen name="ManageProducts" component={ManageProducts} />
           <Stack.Screen name="EditProduct" component={EditProduct}/>
           <Stack.Screen name="SeeOrders" component={SeeOrders}/>
+          <Stack.Screen name="EditAccount" component={EditAccount}/>
           <Stack.Screen
             name="ResetPasswordScreen"
             component={ResetPasswordScreen}

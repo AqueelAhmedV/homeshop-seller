@@ -48,10 +48,10 @@ const ProductList = ({ navigation }) => {
 
   const fetchData = () => {
     setLoading(true)
-    AsyncStorage.getItem("sellerId")
-    .then((sellerId) => {
-        console.log(sellerId)
-        axios.get(`${BASE_URL}/api/product/list-seller/${sellerId}`)
+    AsyncStorage.getItem("seller")
+    .then(JSON.parse)
+    .then((seller) => {
+        axios.get(`${BASE_URL}/api/product/list-seller/${seller.SellerId}`)
       .then((response) => {
         console.log(response.data)
         setProducts(response.data);

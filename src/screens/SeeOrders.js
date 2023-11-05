@@ -33,14 +33,13 @@ const ProductList = ({ navigation }) => {
 
   const fetchData = (currDate) => {
     setLoading(true)
-    AsyncStorage.getItem("sellerId")
-    .then((sellerId) => {
-        console.log(sellerId)
+    AsyncStorage.getItem("seller")
+    .then(JSON.parse)
+    .then((seller) => {
         axios.post(`${BASE_URL}/api/order/list`, {
             from: fromDate,
             to: currDate ?? toDate,
-            sellerId,
-            pinCodes: ['123456']
+            sellerId: seller.SellerId,
         })
       .then((response) => {
         // console.log(response)
@@ -158,7 +157,7 @@ const ProductList = ({ navigation }) => {
               borderRadius: 10,
               paddingHorizontal: 5,
               paddingTop: 3,
-              marginLeft: 10
+              
             }} onPress={searchVisible?handleSearchBack:() => navigation.goBack()}>
               <AntDesign name="left" size={25} color="white" />
             </TouchableOpacity>
@@ -299,7 +298,7 @@ const styles = StyleSheet.create({
         marginTop: 16,
         marginBottom: 10,
         paddingRight: 20,
-        paddingLeft:0,
+        paddingLeft: 15,
         height: 32
       },
       searchInput: {

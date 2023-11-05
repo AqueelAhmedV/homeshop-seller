@@ -3,35 +3,31 @@ import { View, Image, Text, Button, Alert } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import axios from 'axios';
 import { BASE_URL } from '../constants/endpoints';
-import Background from '../components/Background';
 import TextInput from '../components/TextInput';
-import BackButton from '../components/BackButton';
-import Header from '../components/Header';
-// import ModalDropdown from 'react-native-modal-dropdown';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { categories } from '../constants/categories';
-// import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import Btn from '../components/Button';
 // import { SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { LogBox } from 'react-native';
 import { StyleSheet } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import { theme } from '../core/theme';
+import { windowHeight, windowWidth } from '../constants/dimensions'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const UploadImageView = ({ navigation }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [message, setMessage] = useState('');
-  const [productName, setProductName] = useState({value: "Achaar", error: ""})
+  const [productName, setProductName] = useState({value: "", error: ""})
   
-  const [mrp, setMrp] = useState({value: "123", error: ""})
+  const [mrp, setMrp] = useState({value: "", error: ""})
   const [offerPrice, setOfferPrice] = useState({value: "", error: ""})
   const [description, setDescription] = useState("")
-  const [prodUnit, setProdUnit] = useState({value: "Manjeri", error: ""})
+  const [prodUnit, setProdUnit] = useState({value: "", error: ""})
   const [openCategories, setOpenCategories] = useState(false);
-  const [categoryOpts, setCategoryOpts] = useState(categories.map(v => ({
-    label: v,
-    value: v
-  })));
-  const [category, setCategory] = useState("Groceries")
+  const [categoryOpts, setCategoryOpts] = useState([]);
+  const [category, setCategory] = useState("")
   const [openAvailability, setOpenAvailability] = useState(false);
   const [availabilityOpts, setAvailabilityOpts] = useState([{
     label: "Available",
@@ -42,9 +38,18 @@ const UploadImageView = ({ navigation }) => {
   }])
   const [availability, setAvailability] = useState(true)
   const [status, setStatus] = useState("not added")
-
   useEffect(() => {
     LogBox.ignoreLogs(["VirtualizedLists should never be nested"])
+  }, [])
+
+  useEffect(() => {
+    axios.get(`${BASE_URL}/api/constants/categories`)
+    .then((res) => {
+      setCategoryOpts(res.data.map((c) => ({
+        label: c,
+        value: c
+      })))
+    }).catch(console.log)
   }, [])
 
   function handleSubmit() {
@@ -117,15 +122,16 @@ const UploadImageView = ({ navigation }) => {
       setStatus("not added")
       return;
     }
-    AsyncStorage.getItem("sellerId")
-    .then((sellerId) => {
+    AsyncStorage.getItem("seller")
+    .then(JSON.parse)
+    .then((seller) => {
       const formData = new FormData();
       formData.append('image', selectedImage);
       formData.append("newProduct", JSON.stringify({
         ...newProduct,
-        SellerId: sellerId
+        SellerId: seller.SellerId
       }))
-      console.log(sellerId)
+      console.log(seller.SellerId)
       axios.post(`${BASE_URL}/api/product/add`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -186,39 +192,31 @@ const UploadImageView = ({ navigation }) => {
           name: response.assets[0].fileName 
         };
         setSelectedImage(source);
-        // console.log(response.uri)
-        // Create FormData for the image file
-
-        // Send the image to your server
-        // axios.post(`${BASE_URL}/api/product/upload-image`, formData, {
-        //   headers: {
-        //     'Content-Type': 'multipart/form-data',
-        //   },
-        // })
-        //   .then((response) => {
-        //     console.log(response.data)
-            
-        //     if (response.status === 201) {
-        //       setImageId({value: response.data.ImageId, error: ""})
-        //       setMessage('Image uploaded successfully.');
-        //     } else {
-        //       setMessage('Error uploading image. Please try again.');
-        //     }
-        //   })
-        //   .catch((error) => {
-        //     console.log(error)
-        //     console.error('Error uploading image:', error);
-        //     setMessage('Error uploading image. Please try again.');
-        //   });
       }
     });
   };
 
   return (
 
-    <Background>
-      <BackButton goBack={navigation.goBack} />
-      <Header>{"Enter Details"}</Header>
+   <View style={styles.page}>
+    <View style={styles.navbar}>
+      <View style={styles.headerContainer}>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+              <AntDesign name="left" size={25} color="white" />
+            </TouchableOpacity>
+            <View style={{
+                alignItems: "center",
+                width: "90%"
+            }}>
+                <Text style={{
+                    fontWeight: "bold",
+                    fontSize: 24,
+                    color: "#fff",
+                }}>{"Add Product"}</Text>
+            </View>
+      </View>
+    </View>
+    <KeyboardAwareScrollView contentContainerStyle={styles.inputContainer}>
       <TextInput
         label="Product Name"
         returnKeyType="next"
@@ -233,8 +231,10 @@ const UploadImageView = ({ navigation }) => {
         value={description}
         onChangeText={(text) => setDescription(text)}
       />
-      <View style={{flex: 1}}>
+      <View style={styles.dropdownContainer}>
       <DropDownPicker
+      dropDownContainerStyle={{ borderColor: "#999" }}
+      style={styles.dropdown}
       placeholder='Select Category'
       open={openCategories}
       value={category}
@@ -266,6 +266,7 @@ const UploadImageView = ({ navigation }) => {
         onChangeText={(text) => setMrp({ value: text, error: '' })}
         error={!!mrp.error}
         errorText={mrp.error}
+        keyboardType="numeric"
       />
       <TextInput
         label="Offer Price"
@@ -274,9 +275,12 @@ const UploadImageView = ({ navigation }) => {
         onChangeText={(text) => setOfferPrice({value: text, error: ""})}
         error={!!offerPrice.error}
         errorText={offerPrice.error}
+        keyboardType="numeric"
       />
-      
+      <View style={styles.dropdownContainer}>
       <DropDownPicker
+      dropDownContainerStyle={{ borderColor: "#999" }}
+      style={styles.dropdown}
       open={openAvailability}
       value={availability}
       items={availabilityOpts}
@@ -290,6 +294,7 @@ const UploadImageView = ({ navigation }) => {
         setAvailability(value)
       }}
     />
+    </View>
 
       
     <View style={styles.imageContainer}>
@@ -301,12 +306,13 @@ const UploadImageView = ({ navigation }) => {
         disabled={status !== "not added"}
         mode="contained"
         onPress={handleSubmit}
-        style={{ marginTop: 24 }}
+        style={{ marginTop: 24, marginBottom: 50, width: "70%" }}
       >
         {/* <Ionicons name='checkmark' size={5} /> */}
         {status === "added"?"Product Added":"Add Product"}
       </Btn>
-      </Background>
+        </KeyboardAwareScrollView>
+      </View>
 
   );
 };
@@ -314,10 +320,45 @@ const UploadImageView = ({ navigation }) => {
 export default UploadImageView;
 
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+    backgroundColor: "#fff"
+  },
+  navbar: {
+    position: "sticky",
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: theme.colors.primary,
+    height: windowHeight*0.08, // You can adjust the height as needed
+    padding: 0,
+    margin: 0,
+    width: "100%",
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: windowHeight*0.02,
+    paddingHorizontal: 20
+  },
+  inputContainer: {
+    alignItems: "center",
+    paddingHorizontal: 40,
+    marginTop: 20
+  },
+  dropdownContainer: {
+    flex: 1,
+    marginVertical: 8,
+    paddingTop: 5
+  },
+  dropdown: {
+    borderColor: "#999",
+    borderRadius: 4,
+  },
   imageContainer: {
     width: "100%",
     flex: 1,
-    justifyContent: "center",
+    alignItems: "center",
     marginVertical: 10
   },
   image: {
@@ -325,6 +366,7 @@ const styles = StyleSheet.create({
     aspectRatio: "4/3",
     height: 200,
     objectFit: "contain",
-    padding: 5
+    padding: 5,
+    marginVertical: 5
   },
 })
